@@ -1,0 +1,113 @@
+main.container {
+    padding: 2rem 0 2rem 0;
+    margin-bottom: 60px;
+}
+
+/** Page Header **/
+#page-header {
+    padding: 50px 100px 20px 100px;
+    border-bottom: 1px solid #5596e6;
+}
+
+#page-header .title {
+    display: inline-block;
+    font-size: 4rem;
+    font-weight: 700;
+}
+
+#page-header .title span {
+    display: block;
+    font-weight: 200;
+}
+
+#page-header p {
+    margin-top: 2rem;
+    font-size: 26px;
+}
+
+#page-header p .bx--link {
+    font-size: 26px;
+}
+
+/** Anchor at bottom **/
+.anchor {
+    font-size: 14px;
+    text-align: right;
+    position: fixed;
+    right: 2rem;
+    bottom: .5rem;
+}
+
+.anchor .bx--link {
+    font-size: 14px;
+}
+
+.anchor span {
+    color: #3d70b2;
+}
+
+.anchor span:first-child {
+    font-weight: 700;
+    color: #152935;
+}
+
+.card{
+    padding: 5px !important;
+}
+
+card.bx--card {
+    width: 100% !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+    border: 1px solid #8897a2;
+    margin-top: 20px;
+}
+
+div.bx--card-overview__about{
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 1rem;
+}
+
+figure.bx--about__icon {
+    width: 100px !important;
+    height: 100px !important;
+}
+
+figure.bx--about__icon img {
+    width: 100px !important;
+    height: 100px !important;
+}
+
+div.bx--card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 3rem;
+    background-color: #dfe3e6;
+    padding: 10px;
+}
+
+header.bx--about__title {
+    width: 80%;
+    margin: 20px 0 20px 0;
+}
+
+header p{
+    width: 100% !important;
+    white-space: normal !important;
+    margin-top: 1em;
+}
+
+p.bx--about__title--name:after {
+    content: '';
+    width: 10rem;
+    height: .3rem;
+    display: block;
+    background-color: #5596e6;
+    left: 0;
+}

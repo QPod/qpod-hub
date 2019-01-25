@@ -1,0 +1,11 @@
+{
+   "name": "qpod-portal",
+   "version": "0.0.1",
+   "main": "index.js",
+   "private": true,
+   "dependencies": {
+      "bootstrap": "~3.4",
+      "jquery": "components/jquery#~3.3",
+      "carbon-components": "carbon-components/carbon-components#~9.68.3"
+   }
+}

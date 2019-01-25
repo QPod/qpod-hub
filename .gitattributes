@@ -1,0 +1,5 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Ensure bashscripts don't have newlines
+*.sh eol=lf
