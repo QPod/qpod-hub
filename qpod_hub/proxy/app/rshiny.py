@@ -13,8 +13,8 @@ def setup_shiny():
             server {{
                 listen {port};
                 location / {{
-                    site_dir {site_dir};
-                    log_dir {site_dir}/logs;
+                    site_dir {site_dir}/rshiny;
+                    log_dir {site_dir}/rshiny/logs;
                     directory_index on;
                 }}
             }}
