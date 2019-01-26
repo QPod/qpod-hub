@@ -1,4 +1,4 @@
-# QPod Portal Package
+# QPod Hub Package
 
 ## Introduction
 
@@ -32,8 +32,10 @@ docker run -it --rm ^
 ```
 docker exec -it dev_QPod /bin/bash
 
-python -m qpod
+yarn --cwd ./qpod_hub/base/static/
+python -m qpod_hub
 
 python setup.py bdist_wheel
 pip install dist/*.whl
+jupyter notebook
 ```
