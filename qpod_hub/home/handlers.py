@@ -25,9 +25,10 @@ class HomepageHandler(RequestHandler):
         tpl = self.render_template(
             'home/index.html',
             last_update=t_build,
-            exist_rserver=if_exist('rserver'),
             exist_jupyterlab=if_exist('jupyter-lab'),
             exist_jupyter_notebook=if_exist('jupyter-notebook'),
             exist_tensorboard=if_exist('tensorboard'),
+            exist_rserver=if_exist('rserver'),
+            exist_rshiny=if_exist('shiny-server'),
         )
         self.write(tpl)

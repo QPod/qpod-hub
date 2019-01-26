@@ -19,7 +19,7 @@ def setup_shiny():
                 }}
             }}
         """).format(
-            user=getpass.getuser(),
+            user='shiny',  #getpass.getuser(),
             port=str(port),
             site_dir=os.getcwd()
         )

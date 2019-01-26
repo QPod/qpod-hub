@@ -3,21 +3,12 @@ import uuid
 import jinja2
 from tornado.ioloop import IOLoop
 from tornado.options import define, options
-from tornado.web import Application
+from tornado.web import Application, RedirectHandler
 
 from .base.handlers import MainRequestHandler, FileFindHandler
 from .util import get_resource, list_modules, package_name
 
 services = list(list_modules())
-
-
-class TrailingSlashHandler(MainRequestHandler):
-    def get(self):
-        striped = self.request.uri.rstrip('/')
-        print('Redirect to [%s] from [%s]' % (striped, self.request.uri))
-        self.redirect('/home' if len(striped) == 0 else striped)
-
-    post = put = get
 
 
 class AuthHandler(MainRequestHandler):
@@ -44,7 +35,7 @@ define("port", default=8888, help="Run Service on the given port", type=int)
 
 def main():
     handlers = [
-        # (r".*/", TrailingSlashHandler),
+        (r"/", RedirectHandler, {"url": "/home"}),
         (r"/logout", AuthHandler),
         (r"/login", AuthHandler)
     ]
@@ -61,10 +52,6 @@ def main():
             path_static.append(p_static)
 
         handlers.extend(mod_handlers)
-
-    # DEBUG
-    for h in handlers:
-        print(' =>', h)
 
     app = Application(
         handlers,
