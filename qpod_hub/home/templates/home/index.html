@@ -116,14 +116,14 @@
 
       {% if exist_rserver %}
       <div class="col-md-3 card">
-        <card class="bx--card" tabindex="3" aria-labelledby="card-title-4">
+        <card class="bx--card" tabindex="4" aria-labelledby="card-title-4">
           <div class="bx--card-overview__about">
             <figure class="bx--about__icon">
               <img src="{{static_url('base/images/logo-rstudio.svg')}}" alt="" class="bx--about__icon--img" />
             </figure>
             <header class="bx--about__title">
               <p class="bx--about__title--name bx--type-gamma" title="RStudio">RStudio</p>
-              <p class="bx--about__title--additional-info bx--type-delta">RStudio provides popular open source
+              <p class="bx--about__title--additional-info bx--type-delta">Popular open source
                 and professional software for the R statistical computing environment.</p>
             </header>
           </div>
@@ -135,6 +135,35 @@
             <div class="bx--card-footer__app-actions">
               <a class="bx--btn bx--btn--primary bx--btn--sm" type="button" target="_blank" href="{{ base_url }}rstudio/">Launch
               </a>
+            </div>
+          </div>
+        </card>
+      </div>
+      {% endif %}
+
+      {% if exist_rshiny %}
+      <div class="col-md-3 card">
+        <card class="bx--card" tabindex="5" aria-labelledby="card-title-4">
+          <div class="bx--card-overview__about">
+            <figure class="bx--about__icon">
+              <img src="{{static_url('base/images/logo-rshiny.svg')}}" alt="" class="bx--about__icon--img" />
+            </figure>
+            <header class="bx--about__title">
+              <p class="bx--about__title--name bx--type-gamma" title="R Shiny Server">R Shiny Server</p>
+              <p class="bx--about__title--additional-info bx--type-delta">Easy web applications in R.</p>
+              
+              <div class="bx--inline-notification__text-wrapper">
+                <p class="bx--inline-notification__subtitle">Use “/root/rshiny” as shiny base directory.</p>
+              </div>
+            </header>
+          </div>
+
+          <div class="bx--card-footer">
+            <div class="bx--card-footer__app-status">
+              <span class="bx--tag bx--tag--community">Community</span>
+            </div>
+            <div class="bx--card-footer__app-actions">
+              <a class="bx--btn bx--btn--primary bx--btn--sm" type="button" target="_blank" href="{{ base_url }}rshiny/">Launch</a>
             </div>
           </div>
         </card>

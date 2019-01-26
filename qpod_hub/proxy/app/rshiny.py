@@ -8,6 +8,9 @@ def setup_shiny():
     """Manage a Shiny instance."""
 
     def _get_shiny_cmd(port):
+        site_dir = os.getcwd() + '/rshiny'
+        os.makedirs(site_dir, exist_ok=True)
+
         conf = dedent("""
             run_as {user};
             server {{
@@ -19,9 +22,9 @@ def setup_shiny():
                 }}
             }}
         """).format(
-            user=getpass.getuser(),
+            user='shiny',  #getpass.getuser(),
             port=str(port),
-            site_dir=os.getcwd()
+            site_dir=site_dir
         )
 
         f = tempfile.NamedTemporaryFile(mode='w', delete=False)
