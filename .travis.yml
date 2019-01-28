@@ -8,21 +8,15 @@ python:
 sudo: required
 
 before_install:
+  - sudo pip install -U pip && sudo pip install -U setuptools wheel twine
   - npm install -g yarn
   - node --version && npm --version && yarn --version
 
 script:
   - yarn install --cwd ./qpod/base/static/
-  - ls -alh ./qpod/base/static/ && du -h ./qpod/base/static/
   - rm -rf ./qpod/base/static/node_modules ./qpod/base/static/yarn.lock ./qpod/base/static/.yarnrc
-
-deploy:
-  provider: pypi
-  distributions: sdist bdist_wheel
-  user:
-    secure: "ZM0PvtP8u4IYtdXWhPFPZQT2vADzcsVVwJfnZ9QQ4/kEitAwBHpXN8ccpM3Dwy3k4wS1HcavZKwL6trv3ENvVNNbU7J7oQqD8Fgw+owX2ElsB/LfKHAMNLBBl0rnNFM2MYJNYojZ000wGAzTpY3V4apH7Z9qcvM7M5Y1CGdjDYEl170vvwAXSSam1kwLo3nfjjDdmY5wuVgD36BwWTSyIRKhQ6giZ0S+Wm4eDNB3oRGeT0xyePSCoqdg3Cyc7QE8+oCctmeqv0zQS6lpZ9Y3yeJwUal5MkEuCfykhp8B0dnuU8CrHEba9C087JwQOxtMK/v9LSv8CEa86MH+s0eyXJh2I9po/Iu5+zUzPS8kNn58rDGt44gQx0879reuDOOV+x32DgJSYd3i8ge/OIciktc/p6mVdtyycXbY5LzHLeXaxPgFTtfhmjBy8HM5tbInkZj7//UWoL3540GyHB+O9ZBzYu0a3vOOVKlvmq7H8PPhoe28k8dNlR0mxRMEEd1TAbURejHRjDYVd0foVHgZQW0bDnzJd6beTs5j3I1NAV2SvRH2BrJeETcoBtY+AWt6pYAn5C7+2fmay1ua4HXKZd7MfzsG72a28FUVFREMNLwZ35JlOXWDSnA+xyRze6DLQB+pLFw6Q/gtMyf28E3GCjvnL5r6DQKKnx95sEHac+M="
-  password:
-    secure: "1Z+jKp7n219OLyyPrdiFBB4hCyGeC9pHZs7ClXFDodgP399k4GvAVS1cSe7FqKqEWyJxyyJL2V6k3p6JkHKHI8lj6qeTl80PPuqHuJj/n3hwpQYly5wvNwBuyk9AoxoPpwalhTNZYrlzhS7VVCFQR7vzMar8AE2vtO0xVFCwE9oWLMVQkGq+/SUGrUpiJ0RW6mEtFkKHz11zgsND6+Z7NDDH0dpDFTQia8b1CiTUBtDzK74xr3WCNBwRREl+eM3x4Ps4SDTOvtwzmCihow7hzDNtSDUBzugCN2sjQqsFxwtljfrVWl4p1bP8jqTBVJ8hgY9Vt9ts/VTCJ6JiO4bagcwJdfIULY/9DJTBfJ/8J8EF2hOOjmwzf8WBit5ir8l5ZPk17QIqvyzgnKgQ67XO5HWSB+Dnf4vXNcBLqb+jn47pf7wdd1RkbxAIA0+3JlLJ09REAIYgGmFYesTAqtwkhy0h1pGdPe/58IsbHuZfdk43CIjjoxarKCFXbTHkzeySpS6xD5bi3B7o5Sq6UJMZIEWKd0KpdMNE4jIQzU7meXjUAS5INUXjEXfEp59N9HywUkJFVbxmbl/W9eTZY8IDZonN/5mdyZPZAWdswCt/s88URVhiLUI/3Di3utyZ67juCgnngLVCkY1I9PrS7hv0JqDgzGHAlrBTCDIIB6vR7Oo="
-  on:
-    repo: QPod/qpod-hub
-    branch: release
+  - python setup.py sdist bdist_wheel
+  - ls -alh ./dist
+  - if [ "$TRAVIS_REPO_SLUG" = "QPod/qpod-hub" ] && [ "$TRAVIS_BRANCH" = "release" ]; then
+      twine upload dist/* ;  # TWINE_USERNAME/TWINE_PASSWORD need to be set
+    fi
