@@ -8,24 +8,18 @@ python:
 sudo: required
 
 before_install:
-  - pip install -U pip && pip install -U setuptools wheel twine
-  - python -c "import fcntl; fcntl.fcntl(1, fcntl.F_SETFL, 0)"
-  - npm install -g npm yarn
-  - node --version
-  - npm --version
-  - yarn --version
-
+  - sudo pip install -U pip && sudo pip install -U setuptools wheel twine
+  - npm install -g yarn
+  - node --version && npm --version && yarn --version
 
 script:
   - yarn install --cwd ./qpod/base/static/
-  - ls -alh ./qpod/base/static/ && du -h ./qpod/base/static/
   - rm -rf ./qpod/base/static/node_modules ./qpod/base/static/yarn.lock ./qpod/base/static/.yarnrc
+  - python -c "import fcntl; fcntl.fcntl(1, fcntl.F_SETFL, 0)"
+  - python setup.py sdist bdist_wheel
+  - ls -alh ./dist
+  - if [ "$TRAVIS_REPO_SLUG" = "QPod/qpod-hub" ] && [ "$TRAVIS_BRANCH" = "release" ]; then
+      twine upload dist/* --verbose -u "$TWINE_USERNAME" -p "$TWINE_PASSWORD" ;
+    fi
 
-deploy:
-  provider: pypi
-  distributions: sdist bdist_wheel
-  user: $PYPI_USERNAME
-  password: $PYPI_PASSWORD
-  on:
-    repo: QPod/qpod-hub
-    branch: release
+# TWINE_USERNAME/TWINE_PASSWORD need to be set in CI
