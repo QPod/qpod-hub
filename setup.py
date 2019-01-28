@@ -22,7 +22,7 @@ setup(
     name='qpod-hub',
     version='0.0.1',
     author='QPod',
-    author_email='',
+    author_email='45032326+QPod0@users.noreply.github.com',
     url='https://github.com/QPod',
     license='BSD',
     
