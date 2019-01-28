@@ -1,0 +1,22 @@
+# http://travis-ci.org/#!/ipython/ipython
+language: python
+
+python:
+    - 3.6
+
+sudo: required
+
+
+before_install:
+    - pip install -U pip && pip install -U setuptools wheel
+    - nvm install 6.9.2
+    - nvm use 6.9.2
+    - npm install -g npm yarn
+    - node --version
+    - npm --version
+
+
+script:
+    - yarn --cwd ./qpod_hub/base/static/
+    - python setup.py sdist bdist_wheel
+    - ls -alh ./dist
