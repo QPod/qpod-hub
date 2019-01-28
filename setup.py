@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 pack_extensions = {
     'base': True,
@@ -6,19 +6,23 @@ pack_extensions = {
     'proxy': True
 }
 
-include_packages = ['qpod_hub.%s' % x for x in pack_extensions.keys() if pack_extensions[x]]
+include_packages = ['qpod.%s' % x for x in pack_extensions.keys() if pack_extensions[x]]
 print("Pack extensions: %s." % str(include_packages))
 
 include_packages_data = {
-    'qpod_hub': [k.replace('.', '/') + '/static/*' for k in pack_extensions]
+    'qpod': [k.replace('.', '/') + '/static/*' for k in pack_extensions]
 }
 print(include_packages_data)
+
+with open("README.md", "r") as fh:
+    long_description = fh.read()
 
 
 setup(
     name='qpod-hub',
     version='0.0.1',
     author='QPod',
+    author_email='45032326+QPod0@users.noreply.github.com',
     url='https://github.com/QPod',
     license='BSD',
     
@@ -35,7 +39,8 @@ setup(
     ],
 
     description='QPod Hub',
-    long_description='QPod Hub',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
 
     classifiers=[
         'Intended Audience :: Developers',
@@ -46,7 +51,12 @@ setup(
         "Operating System :: OS Independent",
     ],
     data_files=[
-        ('etc/jupyter/jupyter_notebook_config.d', ['qpod_hub/base/etc/qpod_portal-serverextension.json']),
-        ('etc/jupyter/nbconfig/notebook.d', ['qpod_hub/base/etc/qpod_portal-nbextension.json'])
-    ]
+        ('etc/jupyter/jupyter_notebook_config.d', ['qpod/base/etc/qpod_hub-serverextension.json']),
+        ('etc/jupyter/nbconfig/notebook.d', ['qpod/base/etc/qpod_hub-nbextension.json'])
+    ],
+    entry_points={
+        'console_scripts': [
+            'qpod = qpod_hub:main',
+        ]
+    },
 )

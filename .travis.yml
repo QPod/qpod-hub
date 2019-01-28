@@ -1,0 +1,23 @@
+language: python
+
+python:
+    - 3.6
+
+sudo: required
+
+
+before_install:
+    - pip install -U pip && pip install -U setuptools wheel
+    - nvm install 6.9.2
+    - nvm use 6.9.2
+    - npm install -g npm yarn
+    - node --version
+    - npm --version
+    - yarn --version
+
+
+script:
+    - yarn --cwd ./qpod/base/static/
+    - rm -rf ./qpod/base/static/node_modules ./qpod/base/static/yarn.lock ./qpod/base/static/.yarnrc
+    - python setup.py sdist bdist_wheel
+    - ls -alh ./dist
