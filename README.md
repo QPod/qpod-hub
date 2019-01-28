@@ -2,7 +2,15 @@
 
 ## Introduction
 
-A Portal UI and proxy service for QPod.
+The `qpod_hub` package provides a hub portal user interface and proxy service for QPod.
+
+As a hub service, `qpod_hub` detect if specific service are installed and provides a homepage GUI for users.
+Currently, the following services are supported: 
+ - Jupyter Notebook
+ - JupyterLab
+ - Tensorboard
+ - RStudio Server
+ - Shiny Server
 
 ## Development
 
@@ -33,9 +41,9 @@ docker run -it --rm ^
 docker exec -it dev_QPod /bin/bash
 
 yarn --cwd ./qpod_hub/base/static/
-python -m qpod_hub
+python -m qpod
 
-python setup.py bdist_wheel
+python setup.py sdist bdist_wheel
 pip install dist/*.whl
 jupyter notebook
 ```
