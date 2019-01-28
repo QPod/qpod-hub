@@ -40,7 +40,7 @@ docker run -it --rm ^
 ```
 docker exec -it dev_QPod /bin/bash
 
-yarn --cwd ./qpod_hub/base/static/
+yarn --cwd ./qpod/base/static/
 python -m qpod
 
 python setup.py sdist bdist_wheel

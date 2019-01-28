@@ -22,6 +22,7 @@ setup(
     name='qpod-hub',
     version='0.0.1',
     author='QPod',
+    author_email='',
     url='https://github.com/QPod',
     license='BSD',
     
@@ -50,8 +51,8 @@ setup(
         "Operating System :: OS Independent",
     ],
     data_files=[
-        ('etc/jupyter/jupyter_notebook_config.d', ['qpod/base/etc/qpod_portal-serverextension.json']),
-        ('etc/jupyter/nbconfig/notebook.d', ['qpod/base/etc/qpod_portal-nbextension.json'])
+        ('etc/jupyter/jupyter_notebook_config.d', ['qpod/base/etc/qpod_hub-serverextension.json']),
+        ('etc/jupyter/nbconfig/notebook.d', ['qpod/base/etc/qpod_hub-nbextension.json'])
     ],
     entry_points={
         'console_scripts': [

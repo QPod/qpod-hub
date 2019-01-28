@@ -14,9 +14,11 @@ before_install:
     - npm install -g npm yarn
     - node --version
     - npm --version
+    - yarn --version
 
 
 script:
-    - yarn --cwd ./qpod_hub/base/static/
+    - yarn --cwd ./qpod/base/static/
+    - rm -rf ./qpod/base/static/node_modules ./qpod/base/static/yarn.lock ./qpod/base/static/.yarnrc
     - python setup.py sdist bdist_wheel
     - ls -alh ./dist

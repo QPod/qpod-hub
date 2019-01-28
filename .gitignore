@@ -2,9 +2,9 @@
 .ipynb_checkpoints/
 
 # For JS
-qpod_hub/base/static/node_modules
-qpod_hub/base/static/components
-qpod_hub/base/static/yarn.lock
+qpod/base/static/node_modules
+qpod/base/static/components
+qpod/base/static/yarn.lock
 
 *~
 *.#*
