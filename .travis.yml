@@ -1,23 +1,31 @@
 language: python
 
+dist: bionic
+
 python:
-    - 3.6
+  - 3.6
 
 sudo: required
 
-
 before_install:
-    - pip install -U pip && pip install -U setuptools wheel
-    - nvm install 6.9.2
-    - nvm use 6.9.2
-    - npm install -g npm yarn
-    - node --version
-    - npm --version
-    - yarn --version
+  - pip install -U pip && pip install -U setuptools wheel twine
+  - python -c "import fcntl; fcntl.fcntl(1, fcntl.F_SETFL, 0)"
+  - npm install -g npm yarn
+  - node --version
+  - npm --version
+  - yarn --version
 
 
 script:
-    - yarn --cwd ./qpod/base/static/
-    - rm -rf ./qpod/base/static/node_modules ./qpod/base/static/yarn.lock ./qpod/base/static/.yarnrc
-    - python setup.py sdist bdist_wheel
-    - ls -alh ./dist
+  - yarn install --cwd ./qpod/base/static/
+  - ls -alh ./qpod/base/static/ && du -h ./qpod/base/static/
+  - rm -rf ./qpod/base/static/node_modules ./qpod/base/static/yarn.lock ./qpod/base/static/.yarnrc
+
+deploy:
+  provider: pypi
+  distributions: sdist bdist_wheel
+  user: $PYPI_USERNAME
+  password: $PYPI_PASSWORD
+  on:
+    repo: QPod/qpod-hub
+    branch: release

@@ -1,4 +1,7 @@
 from setuptools import setup
+from datetime import datetime
+
+now = datetime.now()
 
 pack_extensions = {
     'base': True,
@@ -20,10 +23,10 @@ with open("README.md", "r") as fh:
 
 setup(
     name='qpod-hub',
-    version='0.0.1',
+    version='%s.%s.%s' % (now.year, now.month, now.day),
     author='QPod',
     author_email='45032326+QPod0@users.noreply.github.com',
-    url='https://github.com/QPod',
+    url='https://github.com/QPod/qpod-hub',
     license='BSD',
     
     packages=['qpod'],  # find_packages(include=include_packages),
@@ -38,7 +41,7 @@ setup(
         'simpervisor'
     ],
 
-    description='QPod Hub',
+    description='A hub portal UI and proxy service for QPod.',
     long_description=long_description,
     long_description_content_type="text/markdown",
 
@@ -56,7 +59,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'qpod = qpod_hub:main',
+            'qpod = qpod:main',
         ]
     },
 )
