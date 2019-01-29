@@ -98,7 +98,7 @@ class ServersInfoHandler(RequestHandler):
         for sp in self.server_processes:
             # Manually recurse to convert namedtuples into JSONable structures
             data.append({
-                'name': sp.name
+                'name': sp.get('name', 'Unknown')
             })
 
         self.write({'server_processes': data})
@@ -237,7 +237,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, RequestHandler):
 
         # Some applications check X-Forwarded-Context and X-ProxyContextPath
         # headers to see if and where they are being proxied from.
-        if self.rewrite == '/':
+        if self.rewrite:
             headers['X-Forwarded-Context'] = context_path
             headers['X-ProxyContextPath'] = context_path
 
@@ -346,7 +346,6 @@ class LocalProxyHandler(WebSocketHandlerMixin, RequestHandler):
         return super().select_subprotocol(subprotocols)
 
 
-# FIXME: Move this to its own file. Too many packages now import this from nbrserverproxy.handlers
 class SuperviseAndProxyHandler(LocalProxyHandler):
     """Manage a given process and requests to it """
 
