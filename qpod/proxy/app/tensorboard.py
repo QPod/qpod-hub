@@ -11,8 +11,8 @@ def setup_tensorboard():
         return [
             executable,
             '--port=' + str(port),
-            '--logdir="/tmp/tensorboard"',
-            '--base_url="/tensorboard"',
+            '--logdir=/tmp/tensorboard',
+            #'--path_prefix=/tensorboard',
             '--purge_orphaned_data=true',
             '--window_title=QPod - Tensorboard'
         ]
