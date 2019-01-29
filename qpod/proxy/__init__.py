@@ -3,7 +3,10 @@ from .handlers import ServersInfoHandler, LocalProxyHandler, AddSlashHandler
 from .app import apps
 
 from collections import namedtuple
+
+
 ServerProcess = namedtuple('ServerProcess', ('name', 'command', 'environment', 'timeout'))
+server_proccesses = [ServerProcess(**a) for a in apps]
 
 
 def make_handlers(server_processes):
@@ -20,8 +23,6 @@ def make_handlers(server_processes):
 
     return _handlers
 
-
-server_proccesses = [ServerProcess(**a) for a in apps]
 
 server_handlers = make_handlers(server_proccesses)
 default_handlers = server_handlers + [

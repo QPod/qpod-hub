@@ -20,6 +20,7 @@ script:
   - ls -alh ./dist
   - if [ "$TRAVIS_REPO_SLUG" = "QPod/qpod-hub" ] && [ "$TRAVIS_BRANCH" = "release" ]; then
       twine upload dist/* --verbose -u "$TWINE_USERNAME" -p "$TWINE_PASSWORD" ;
+    else
+      twine upload dist/* --verbose -u "$TWINE_USERNAME" -p "$TWINE_PASSWORD" --repository-url "https://test.pypi.org/legacy/" ;
     fi
-
 # TWINE_USERNAME/TWINE_PASSWORD need to be set in CI
