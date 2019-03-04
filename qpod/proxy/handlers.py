@@ -1,21 +1,89 @@
-"""
-Authenticated HTTP proxy for Jupyter Notebooks
-Some original inspiration from https://github.com/senko/tornado-proxy
-"""
+# Authenticated HTTP proxy, Some original inspiration from https://github.com/senko/tornado-proxy
 
 import os
 import socket
+import inspect
+
+from aiohttp import ClientSession, ClientConnectionError
 from asyncio import Lock
+from simpervisor import SupervisedProcess
+from tornado import httpclient, httputil, ioloop, web, websocket, version_info
 from urllib.parse import urlunparse, urlparse
 
-import aiohttp
-from simpervisor import SupervisedProcess
-from tornado import httpclient, httputil, ioloop, web
-
 from .utils import url_path_join, utcnow
-from .utils import url_path_join as ujoin
-from .websocket import WebSocketHandlerMixin, pingable_ws_connect
 from .. import RequestHandler
+
+
+class PingableWSClientConnection(websocket.WebSocketClientConnection):
+    """A WebSocketClientConnection with an on_ping callback."""
+    def __init__(self, **kwargs):
+        if 'on_ping_callback' in kwargs:
+            self._on_ping_callback = kwargs['on_ping_callback']
+            del (kwargs['on_ping_callback'])
+        super().__init__(**kwargs)
+
+    def on_ping(self, data):
+        if self._on_ping_callback:
+            self._on_ping_callback(data)
+
+
+def pingable_ws_connect(request=None, on_message_callback=None, on_ping_callback=None):
+    """
+    A variation on websocket_connect that returns a PingableWSClientConnection
+    with on_ping_callback.
+    """
+    # Copy and convert the headers dict/object (see comments in AsyncHTTPClient.fetch)
+    request.headers = httputil.HTTPHeaders(request.headers)
+    request = httpclient._RequestProxy(request, httpclient.HTTPRequest._DEFAULTS)
+
+    if version_info[0] == 4:  # for tornado 4.5.x compatibility
+        conn = PingableWSClientConnection(
+            request=request,
+            on_message_callback=on_message_callback,
+            on_ping_callback=on_ping_callback,
+            io_loop=ioloop.IOLoop.current(),
+        )
+    else:
+        conn = PingableWSClientConnection(
+            request=request,
+            on_message_callback=on_message_callback,
+            on_ping_callback=on_ping_callback,
+            max_message_size=getattr(websocket, '_default_max_message_size', 10 * 1024 * 1024)
+        )
+
+    return conn.connect_future
+
+
+# https://stackoverflow.com/questions/38663666/how-can-i-serve-a-http-page-and-a-websocket-on-the-same-url-in-tornado
+class WebSocketHandlerMixin(websocket.WebSocketHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # calling the super() constructor since the parent doesn't keep
+        bases = inspect.getmro(type(self))
+        assert WebSocketHandlerMixin in bases
+        meindex = bases.index(WebSocketHandlerMixin)
+        try:
+            nextparent = bases[meindex + 1]
+        except IndexError:
+            raise Exception("WebSocketHandlerMixin should be followed by another parent to make sense")
+
+        # un-disallow methods --- t.ws.WebSocketHandler disallows methods, re-enable these methods
+        def wrapper(method):
+            def un_disallow(*args2, **kwargs2):
+                getattr(nextparent, method)(self, *args2, **kwargs2)
+
+            return un_disallow
+
+        for method in ["write", "redirect", "set_header", "set_cookie",
+                       "set_status", "flush", "finish"]:
+            setattr(self, method, wrapper(method))
+        nextparent.__init__(self, *args, **kwargs)
+
+    async def get(self, *args, **kwargs):
+        if self.request.headers.get("Upgrade", "").lower() != 'websocket':
+            return await self.http_get(*args, **kwargs)
+        # super get is not async
+        super().get(*args, **kwargs)
 
 
 class ServersInfoHandler(RequestHandler):
@@ -30,7 +98,7 @@ class ServersInfoHandler(RequestHandler):
         for sp in self.server_processes:
             # Manually recurse to convert namedtuples into JSONable structures
             data.append({
-                'name': sp.name
+                'name': sp.get('name', 'Unknown')
             })
 
         self.write({'server_processes': data})
@@ -47,6 +115,11 @@ class AddSlashHandler(RequestHandler):
 
 
 class LocalProxyHandler(WebSocketHandlerMixin, RequestHandler):
+    def __init__(self, *args, **kwargs):
+        self.proxy_base = ''
+        self.rewrite = kwargs.pop('rewrite', '/')
+        super().__init__(*args, **kwargs)
+
     async def open(self, port, proxied_path=''):
         """
         Called when a client opens a websocket connection.
@@ -99,8 +172,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, RequestHandler):
 
     def on_message(self, message):
         """
-        Called when we receive a message from our client.
-        We proxy it to the backend.
+        Called when we receive a message from our client. We proxy it to the backend.
         """
         self._record_activity()
         if hasattr(self, 'ws'):
@@ -108,10 +180,9 @@ class LocalProxyHandler(WebSocketHandlerMixin, RequestHandler):
 
     def on_ping(self, data):
         """
-        Called when the client pings our websocket connection.
-        We proxy it to the backend.
+        Called when the client pings our websocket connection. We proxy it to the backend.
         """
-        self.log.debug('jupyter_server_proxy: on_ping: {}'.format(data))
+        self.log.debug('proxy: on_ping: {}'.format(data))
         self._record_activity()
         if hasattr(self, 'ws'):
             self.ws.protocol.write_ping(data)
@@ -120,30 +191,67 @@ class LocalProxyHandler(WebSocketHandlerMixin, RequestHandler):
         """
         Called when we receive a ping back.
         """
-        self.log.debug('jupyter_server_proxy: on_pong: {}'.format(data))
+        self.log.debug('proxy: on_pong: {}'.format(data))
 
     def on_close(self):
         """
-        Called when the client closes our websocket connection.
-        We close our connection to the backend too.
+        Called when the client closes our websocket connection. We close our connection to the backend too.
         """
         if hasattr(self, 'ws'):
             self.ws.close()
 
     def _record_activity(self):
-        """Record proxied activity as API activity
-        avoids proxied traffic being ignored by the notebook's
-        internal idle-shutdown mechanism
-        """
+        """Record proxied activity as API activity avoids proxied traffic being ignored by the proxy internal idle-shutdown mechanism"""
         self.settings['api_last_activity'] = utcnow()
+
+    def _get_context_path(self, port):
+        """
+        Some applications need to know where they are being proxied from.
+        This is either:
+        - {base_url}/proxy/{port}
+        - {base_url}/{proxy_base}
+        """
+        if self.proxy_base:
+            return url_path_join(self.base_url, self.proxy_base)
+        if self.rewrite in ('/', ''):
+            return url_path_join(self.base_url, 'proxy', str(port))
+
+        raise ValueError('Unsupported rewrite: "{}"'.format(self.rewrite))
+
+    def _build_proxy_request(self, port, proxied_path, body):
+        context_path = self._get_context_path(port)
+        if self.rewrite:  # non-empty string, '/' by default
+            client_path = proxied_path
+        else:  # empty string, absolute path
+            client_path = url_path_join(context_path, proxied_path)
+
+        client_uri = '{uri}:{port}{path}'.format(
+            uri='http://localhost',
+            port=port,
+            path=client_path
+        )
+        if self.request.query:
+            client_uri += '?' + self.request.query
+
+        headers = self.proxy_request_headers()
+
+        # Some applications check X-Forwarded-Context and X-ProxyContextPath
+        # headers to see if and where they are being proxied from.
+        if self.rewrite:
+            headers['X-Forwarded-Context'] = context_path
+            headers['X-ProxyContextPath'] = context_path
+
+        req = httpclient.HTTPRequest(
+            client_uri, method=self.request.method, body=body,
+            headers=headers, **self.proxy_request_options())
+        return req
 
     @web.authenticated
     async def proxy(self, port, proxied_path):
         """
-        While self.request.uri is
-            (hub)    /user/username/proxy/([0-9]+)/something.
-            (single) /proxy/([0-9]+)/something
-        This serverextension is given {port}/{everything/after}.
+        This serverextension handles:
+          {base_url}/proxy/{port([0-9]+)}/{proxied_path}
+          {base_url}/{proxy_base}/{proxied_path}
         """
 
         if 'Proxy-Connection' in self.request.headers:
@@ -153,7 +261,6 @@ class LocalProxyHandler(WebSocketHandlerMixin, RequestHandler):
 
         if self.request.headers.get("Upgrade", "").lower() == 'websocket':
             # We wanna websocket!
-            # jupyterhub/jupyter-server-proxy@36b3214
             self.log.info("we wanna websocket, but we don't define WebSocketProxyHandler")
             self.set_status(500)
 
@@ -164,29 +271,8 @@ class LocalProxyHandler(WebSocketHandlerMixin, RequestHandler):
             else:
                 body = None
 
-        client_uri = '{uri}:{port}{path}'.format(
-            uri='http://localhost',
-            port=port,
-            path=proxied_path
-        )
-        if self.request.query:
-            client_uri += '?' + self.request.query
-
         client = httpclient.AsyncHTTPClient()
-
-        headers = self.proxy_request_headers()
-
-        # Some applications check X-Forwarded-Context and X-ProxyContextPath
-        # headers to see if and where they are being proxied from. We set
-        # them to be {base_url}/proxy/{port}.
-        headers['X-Forwarded-Context'] = headers['X-ProxyContextPath'] = \
-            url_path_join(self.base_url, 'proxy', str(port))
-
-        req = httpclient.HTTPRequest(
-            client_uri, method=self.request.method, body=body,
-            headers=headers,
-            **self.proxy_request_options())
-
+        req = self._build_proxy_request(port, proxied_path, body)        
         response = await client.fetch(req, raise_error=False)
         # record activity at start and end of requests
         self._record_activity()
@@ -260,7 +346,6 @@ class LocalProxyHandler(WebSocketHandlerMixin, RequestHandler):
         return super().select_subprotocol(subprotocols)
 
 
-# FIXME: Move this to its own file. Too many packages now import this from nbrserverproxy.handlers
 class SuperviseAndProxyHandler(LocalProxyHandler):
     """Manage a given process and requests to it """
 
@@ -291,35 +376,29 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         return os.getcwd()
 
     def get_env(self):
-        """Set up extra environment variables for process. Typically
-           overridden in subclasses."""
+        """Set up extra environment variables for process. Typically overridden in subclasses."""
         return {}
 
     def get_timeout(self):
-        """
-        Return timeout (in s) to wait before giving up on process readiness
-        """
+        """Return timeout (in s) to wait before giving up on process readiness"""
         return 5
 
     async def _http_ready_func(self, p):
         url = 'http://localhost:{}'.format(self.port)
-        async with aiohttp.ClientSession() as session:
+        async with ClientSession() as session:
             try:
                 async with session.get(url) as resp:
                     self.log.debug('Got code {} back from {}'.format(resp.status, url))
                     return True
-            except aiohttp.ClientConnectionError:
+            except ClientConnectionError:
                 self.log.debug('Connection to {} refused'.format(url))
                 return False
 
     async def ensure_process(self):
-        """
-        Start the process
-        """
+        """ Start the process """
         # We don't want multiple requests trying to start the process at the same time
         # FIXME: Make sure this times out properly?
-        # Invariant here should be: when lock isn't being held, either 'proc' is in state &
-        # running, or not.
+        # Invariant here should be: when lock isn't being held, either 'proc' is in state & running, or not.
         with (await self.state['proc_lock']):
             if 'proc' not in self.state:
                 # FIXME: Prevent races here

@@ -11,7 +11,8 @@ def setup_tensorboard():
         return [
             executable,
             '--port=' + str(port),
-            '--logdir="/tmp/tensorboard"',
+            '--logdir=/tmp/tensorboard',
+            #'--path_prefix=/tensorboard/',
             '--purge_orphaned_data=true',
             '--window_title=QPod - Tensorboard'
         ]
@@ -20,5 +21,6 @@ def setup_tensorboard():
         'name': 'tensorboard',
         'command': _get_tensorboard_cmd,
         'environment': {},
-        'timeout': 5
+        'timeout': 5,
+        'rewrite': '/'
     }

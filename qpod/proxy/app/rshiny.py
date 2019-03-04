@@ -22,7 +22,7 @@ def setup_shiny():
                 }}
             }}
         """).format(
-            user='shiny',  #getpass.getuser(),
+            user=getpass.getuser(),  # run as current user
             port=str(port),
             site_dir=site_dir
         )

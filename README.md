@@ -55,6 +55,6 @@ yarn --cwd ./qpod/base/static/
 python -m qpod
 
 python setup.py sdist bdist_wheel
-pip install dist/*.whl
+pip install -U dist/*.whl
 jupyter notebook
 ```
