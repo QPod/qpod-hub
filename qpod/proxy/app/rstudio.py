@@ -1,5 +1,5 @@
-import getpass
 import os
+import pwd
 import shutil
 
 
@@ -19,7 +19,7 @@ def setup_rstudio():
         'name': 'rstudio',
         'command': _get_rserver_cmd,
         'environment':  {
-            'USER': getpass.getuser()
+            'USER': pwd.getpwuid(os.getuid())[0]
         },
         'timeout': 5
     }
