@@ -1,5 +1,5 @@
-import getpass
 import os
+import pwd
 import tempfile
 from textwrap import dedent
 
@@ -12,7 +12,7 @@ def setup_shiny():
         os.makedirs(site_dir, exist_ok=True)
 
         conf = dedent("""
-            run_as {user};
+            run_as :HOME_USER: {user};
             server {{
                 listen {port};
                 location / {{
@@ -22,7 +22,7 @@ def setup_shiny():
                 }}
             }}
         """).format(
-            user=getpass.getuser(),  # run as current user
+            user=pwd.getpwuid(os.getuid())[0],  # 'shiny'
             port=str(port),
             site_dir=site_dir
         )
