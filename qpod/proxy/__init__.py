@@ -15,7 +15,6 @@ def make_handlers(server_processes):
         ])
     return _handlers
 
-
 server_handlers = make_handlers(apps)
 default_handlers = server_handlers + [
     (r'/server-proxy/servers-info', ServersInfoHandler, {'server_processes': apps}),
