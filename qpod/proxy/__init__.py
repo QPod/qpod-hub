@@ -18,5 +18,6 @@ def make_handlers(server_processes):
 server_handlers = make_handlers(apps)
 default_handlers = server_handlers + [
     (r'/server-proxy/servers-info', ServersInfoHandler, {'server_processes': apps}),
-    (r'/proxy/(\d+)(.*)', LocalProxyHandler)
+    (r'/proxy/(\d+)(.*)', LocalProxyHandler, {'absolute_url': False}),
+    (r'/proxy/absolute/(\d+)(.*)', LocalProxyHandler, {'absolute_url': True})
 ]
