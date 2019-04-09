@@ -10,7 +10,7 @@ from simpervisor import SupervisedProcess
 from tornado import httpclient, httputil, ioloop, web, websocket, version_info
 from urllib.parse import urlunparse, urlparse
 
-from .utils import url_path_join, utcnow
+from .utils import url_path_join, utcnow, maybe_future
 from .. import RequestHandler
 
 
@@ -82,8 +82,8 @@ class WebSocketHandlerMixin(websocket.WebSocketHandler):
     async def get(self, *args, **kwargs):
         if self.request.headers.get("Upgrade", "").lower() != 'websocket':
             return await self.http_get(*args, **kwargs)
-        # super get is not async
-        super().get(*args, **kwargs)
+        else:
+            await maybe_future(super().get(*args, **kwargs))
 
 
 class ServersInfoHandler(RequestHandler):
