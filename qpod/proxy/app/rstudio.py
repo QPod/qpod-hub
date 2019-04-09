@@ -20,6 +20,5 @@ def setup_rstudio():
         'command': _get_rserver_cmd,
         'environment':  {
             'USER': pwd.getpwuid(os.getuid())[0]
-        },
-        'timeout': 5
+        }
     }

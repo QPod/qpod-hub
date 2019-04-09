@@ -21,6 +21,5 @@ def setup_tensorboard():
         'name': 'tensorboard',
         'command': _get_tensorboard_cmd,
         'environment': {},
-        'timeout': 5,
-        'rewrite': '/'
+        'absolute_url': True
     }
