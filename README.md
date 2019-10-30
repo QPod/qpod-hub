@@ -17,11 +17,12 @@ As a hub service, `qpod-hub` detect if specific service are installed and provid
 Currently, the following services are supported: 
  - Jupyter Notebook
  - JupyterLab
+ - Code-server
  - Tensorboard
  - RStudio Server
  - Shiny Server
 
-![Screenshot of QPod](https://i.imgur.com/zEaSliT.jpg "Screenshot of QPod")
+![Screen shot of QPod](https://i.imgur.com/zEaSliT.jpg "Screen shot of QPod")
 
 ## Development
 
@@ -31,8 +32,6 @@ docker run -it --rm \
     --name=dev_QPod \
     --hostname="docker-develop@" \
     -v `pwd`/:/root/ \
-    -v ~/.ssh/:/root/.ssh/:ro \
-    -v ~/.gitconfig:/root/.gitconfig:ro \
     -p 8800-8888:8800-8888 \
     qpod /bin/bash
 ```
@@ -51,7 +50,10 @@ docker run -it --rm ^
 ```
 docker exec -it dev_QPod /bin/bash
 
-yarn --cwd ./qpod/base/static/
+PYLIB_DIR="/opt/conda/lib/python3.7/site-packages/"
+ln -s `pwd`/qpod $PYLIB_DIR/
+
+yarn --cwd `pwd`/qpod/base/static/
 python -m qpod
 
 python setup.py sdist bdist_wheel

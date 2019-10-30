@@ -82,10 +82,37 @@
       </div>
       {% endif %}
 
+      {% if exist_code_server %}
+      <div class="col-md-3 card">
+        <card class="bx--card" tabindex="3" aria-labelledby="card-title-3">
+          <div class="bx--card-overview__about">
+            <figure class="bx--about__icon">
+              <img src="{{static_url('base/images/logo-code-server.svg')}}" alt="" class="bx--about__icon--img" />
+            </figure>
+            <header class="bx--about__title">
+              <p class="bx--about__title--name bx--type-gamma" title="Code Server">Code Server</p>
+              <p class="bx--about__title--additional-info bx--type-delta">Browser-based VS Code environment,
+                with same user experience of VS Code Desktop.</p>
+            </header>
+          </div>
+
+          <div class="bx--card-footer">
+            <div class="bx--card-footer__app-status">
+              <span class="bx--tag bx--tag--community">Community</span>
+            </div>
+            <div class="bx--card-footer__app-actions">
+              <a class="bx--btn bx--btn--primary bx--btn--sm" type="button" target="_blank" href="{{ base_url }}code-server/">Launch
+              </a>
+            </div>
+          </div>
+        </card>
+      </div>
+      {% endif %}
+
 
       {% if exist_tensorboard %}
       <div class="col-md-3 card">
-        <card class="bx--card" tabindex="3" aria-labelledby="card-title-3">
+        <card class="bx--card" tabindex="4" aria-labelledby="card-title-4">
           <div class="bx--card-overview__about">
             <figure class="bx--about__icon">
               <img src="{{static_url('base/images/logo-tensorflow.svg')}}" alt="" class="bx--about__icon--img" />
@@ -116,7 +143,7 @@
 
       {% if exist_rserver %}
       <div class="col-md-3 card">
-        <card class="bx--card" tabindex="4" aria-labelledby="card-title-4">
+        <card class="bx--card" tabindex="5" aria-labelledby="card-title-5">
           <div class="bx--card-overview__about">
             <figure class="bx--about__icon">
               <img src="{{static_url('base/images/logo-rstudio.svg')}}" alt="" class="bx--about__icon--img" />
@@ -143,7 +170,7 @@
 
       {% if exist_rshiny %}
       <div class="col-md-3 card">
-        <card class="bx--card" tabindex="5" aria-labelledby="card-title-4">
+        <card class="bx--card" tabindex="6" aria-labelledby="card-title-6">
           <div class="bx--card-overview__about">
             <figure class="bx--about__icon">
               <img src="{{static_url('base/images/logo-rshiny.svg')}}" alt="" class="bx--about__icon--img" />
