@@ -38,17 +38,19 @@ def pingable_ws_connect(request=None, on_message_callback=None, on_ping_callback
 
     if version_info[0] == 4:  # for tornado 4.5.x compatibility
         conn = PingableWSClientConnection(
+            io_loop=ioloop.IOLoop.current(),
             request=request,
             on_message_callback=on_message_callback,
             on_ping_callback=on_ping_callback,
-            io_loop=ioloop.IOLoop.current(),
+            compression_options={}
         )
     else:
         conn = PingableWSClientConnection(
             request=request,
             on_message_callback=on_message_callback,
             on_ping_callback=on_ping_callback,
-            max_message_size=getattr(websocket, '_default_max_message_size', 10 * 1024 * 1024)
+            max_message_size=getattr(websocket, '_default_max_message_size', 10 * 1024 * 1024),
+            compression_options={}
         )
 
     return conn.connect_future
@@ -106,7 +108,6 @@ class ServersInfoHandler(RequestHandler):
 
 class AddSlashHandler(RequestHandler):
     """Add trailing slash to URLs that need them."""
-
     @web.authenticated
     def get(self, *args):
         src = urlparse(self.request.uri)
@@ -219,6 +220,9 @@ class LocalProxyHandler(WebSocketHandlerMixin, RequestHandler):
             client_path = url_path_join(context_path, proxied_path)
         else:
             client_path = proxied_path
+
+        if not client_path.startswith('/'):  # fix for url not startswith /
+            client_path = '/' + client_path
 
         client_uri = '{protocol}://{host}:{port}{path}'.format(
             protocol=protocol,

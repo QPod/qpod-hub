@@ -13,7 +13,7 @@ def setup_tensorboard():
             '--port=' + str(port),
             '--bind_all',
             '--logdir=/tmp/tensorboard',
-            # '--path_prefix=/tensorboard/',
+            '--path_prefix=/tensorboard/',
             '--purge_orphaned_data=true',
             '--window_title=QPod - Tensorboard'
         ]
