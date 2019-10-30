@@ -10,7 +10,7 @@ from simpervisor import SupervisedProcess
 from tornado import httpclient, httputil, ioloop, web, websocket, version_info
 from urllib.parse import urlunparse, urlparse
 
-from .utils import url_path_join, utcnow
+from .utils import url_path_join, utcnow, maybe_future
 from .. import RequestHandler
 
 
@@ -38,17 +38,19 @@ def pingable_ws_connect(request=None, on_message_callback=None, on_ping_callback
 
     if version_info[0] == 4:  # for tornado 4.5.x compatibility
         conn = PingableWSClientConnection(
+            io_loop=ioloop.IOLoop.current(),
             request=request,
             on_message_callback=on_message_callback,
             on_ping_callback=on_ping_callback,
-            io_loop=ioloop.IOLoop.current(),
+            compression_options={}
         )
     else:
         conn = PingableWSClientConnection(
             request=request,
             on_message_callback=on_message_callback,
             on_ping_callback=on_ping_callback,
-            max_message_size=getattr(websocket, '_default_max_message_size', 10 * 1024 * 1024)
+            max_message_size=getattr(websocket, '_default_max_message_size', 10 * 1024 * 1024),
+            compression_options={}
         )
 
     return conn.connect_future
@@ -82,8 +84,8 @@ class WebSocketHandlerMixin(websocket.WebSocketHandler):
     async def get(self, *args, **kwargs):
         if self.request.headers.get("Upgrade", "").lower() != 'websocket':
             return await self.http_get(*args, **kwargs)
-        # super get is not async
-        super().get(*args, **kwargs)
+        else:
+            await maybe_future(super().get(*args, **kwargs))
 
 
 class ServersInfoHandler(RequestHandler):
@@ -106,7 +108,6 @@ class ServersInfoHandler(RequestHandler):
 
 class AddSlashHandler(RequestHandler):
     """Add trailing slash to URLs that need them."""
-
     @web.authenticated
     def get(self, *args):
         src = urlparse(self.request.uri)
@@ -117,7 +118,7 @@ class AddSlashHandler(RequestHandler):
 class LocalProxyHandler(WebSocketHandlerMixin, RequestHandler):
     def __init__(self, *args, **kwargs):
         self.proxy_base = ''
-        self.rewrite = kwargs.pop('rewrite', '/')
+        self.absolute_url = kwargs.pop('absolute_url', False)
         super().__init__(*args, **kwargs)
 
     async def open(self, port, proxied_path=''):
@@ -129,13 +130,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, RequestHandler):
         if not proxied_path.startswith('/'):
             proxied_path = '/' + proxied_path
 
-        client_uri = '{uri}:{port}{path}'.format(
-            uri='ws://127.0.0.1',
-            port=port,
-            path=proxied_path
-        )
-        if self.request.query:
-            client_uri += '?' + self.request.query
+        client_uri = self.get_client_uri('ws', port, proxied_path)
         headers = self.request.headers
 
         def message_cb(message):
@@ -164,7 +159,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, RequestHandler):
             self._record_activity()
             request = httpclient.HTTPRequest(url=client_uri, headers=headers)
             self.ws = await pingable_ws_connect(request=request,
-                                                on_message_callback=message_cb, on_ping_callback=ping_cb)
+                on_message_callback=message_cb, on_ping_callback=ping_cb)
             self._record_activity()
             self.log.info('Websocket connection established to {}'.format(client_uri))
 
@@ -209,35 +204,46 @@ class LocalProxyHandler(WebSocketHandlerMixin, RequestHandler):
         Some applications need to know where they are being proxied from.
         This is either:
         - {base_url}/proxy/{port}
+        - {base_url}/proxy/absolute/{port}
         - {base_url}/{proxy_base}
         """
         if self.proxy_base:
             return url_path_join(self.base_url, self.proxy_base)
-        if self.rewrite in ('/', ''):
+        if self.absolute_url:
+            return url_path_join(self.base_url, 'proxy', 'absolute', str(port))
+        else:
             return url_path_join(self.base_url, 'proxy', str(port))
 
-        raise ValueError('Unsupported rewrite: "{}"'.format(self.rewrite))
-
-    def _build_proxy_request(self, port, proxied_path, body):
+    def get_client_uri(self, protocol, port, proxied_path):
         context_path = self._get_context_path(port)
-        if self.rewrite:  # non-empty string, '/' by default
-            client_path = proxied_path
-        else:  # empty string, absolute path
+        if self.absolute_url:
             client_path = url_path_join(context_path, proxied_path)
+        else:
+            client_path = proxied_path
 
-        client_uri = '{uri}:{port}{path}'.format(
-            uri='http://localhost',
+        if not client_path.startswith('/'):  # fix for url not startswith /
+            client_path = '/' + client_path
+
+        client_uri = '{protocol}://{host}:{port}{path}'.format(
+            protocol=protocol,
+            host='localhost',
             port=port,
             path=client_path
         )
         if self.request.query:
             client_uri += '?' + self.request.query
 
+        return client_uri
+
+    def _build_proxy_request(self, port, proxied_path, body):
+
         headers = self.proxy_request_headers()
 
+        client_uri = self.get_client_uri('http', port, proxied_path)
         # Some applications check X-Forwarded-Context and X-ProxyContextPath
         # headers to see if and where they are being proxied from.
-        if self.rewrite:
+        if not self.absolute_url:
+            context_path = self._get_context_path(port)
             headers['X-Forwarded-Context'] = context_path
             headers['X-ProxyContextPath'] = context_path
 
@@ -248,11 +254,12 @@ class LocalProxyHandler(WebSocketHandlerMixin, RequestHandler):
 
     @web.authenticated
     async def proxy(self, port, proxied_path):
-        """
+        '''
         This serverextension handles:
-          {base_url}/proxy/{port([0-9]+)}/{proxied_path}
-          {base_url}/{proxy_base}/{proxied_path}
-        """
+            {base_url}/proxy/{port([0-9]+)}/{proxied_path}
+            {base_url}/proxy/absolute/{port([0-9]+)}/{proxied_path}
+            {base_url}/{proxy_base}/{proxied_path}
+        '''
 
         if 'Proxy-Connection' in self.request.headers:
             del self.request.headers['Proxy-Connection']
@@ -260,7 +267,6 @@ class LocalProxyHandler(WebSocketHandlerMixin, RequestHandler):
         self._record_activity()
 
         if self.request.headers.get("Upgrade", "").lower() == 'websocket':
-            # We wanna websocket!
             self.log.info("we wanna websocket, but we don't define WebSocketProxyHandler")
             self.set_status(500)
 
@@ -272,7 +278,8 @@ class LocalProxyHandler(WebSocketHandlerMixin, RequestHandler):
                 body = None
 
         client = httpclient.AsyncHTTPClient()
-        req = self._build_proxy_request(port, proxied_path, body)        
+
+        req = self._build_proxy_request(port, proxied_path, body)
         response = await client.fetch(req, raise_error=False)
         # record activity at start and end of requests
         self._record_activity()

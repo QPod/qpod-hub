@@ -35,6 +35,5 @@ def setup_shiny():
     return {
         'name': 'rshiny',
         'command': _get_shiny_cmd,
-        'environment': {},
-        'timeout': 5
+        'environment': {}
     }

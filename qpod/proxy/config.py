@@ -31,7 +31,7 @@ def call_with_asked_args(callback, args):
     return callback(*asked_arg_values)
 
 
-def make_serverproxy_handler(name, command, environment, timeout=5, rewrite='/'):
+def make_serverproxy_handler(name, command, environment, port=0, absolute_url=False, timeout=5):
     """Create a SuperviseAndProxyHandler subclass with given parameters"""
 
     # FIXME: Set 'name' properly
@@ -40,7 +40,9 @@ def make_serverproxy_handler(name, command, environment, timeout=5, rewrite='/')
             super().__init__(*args, **kwargs)
             self.name = name
             self.proxy_base = name
-            self.rewrite = rewrite
+            self.requested_port = port
+            self.absolute_url = absolute_url
+
 
         @property
         def process_args(self):

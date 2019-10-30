@@ -5,7 +5,7 @@
    "private": true,
    "dependencies": {
       "bootstrap": "~3.4",
-      "jquery": "components/jquery#~3.3",
+      "jquery": "components/jquery#~3.4.1",
       "carbon-components": "carbon-components/carbon-components#~9.68.3"
    }
 }

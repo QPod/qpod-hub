@@ -27,6 +27,7 @@ class HomepageHandler(RequestHandler):
             last_update=t_build,
             exist_jupyterlab=if_exist('jupyter-lab'),
             exist_jupyter_notebook=if_exist('jupyter-notebook'),
+            exist_code_server=if_exist('code-server'),
             exist_tensorboard=if_exist('tensorboard'),
             exist_rserver=if_exist('rserver'),
             exist_rshiny=if_exist('shiny-server'),
