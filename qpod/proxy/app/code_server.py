@@ -13,6 +13,7 @@ def setup_code_server():
         return [
             executable,
             '--auth=none',
+            '--disable-telemetry',
             '--port=' + str(port)
         ]
 
