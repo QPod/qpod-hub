@@ -22,7 +22,7 @@ Currently, the following services are supported:
  - RStudio Server
  - Shiny Server
 
-![Screen shot of QPod](https://i.imgur.com/zEaSliT.jpg "Screen shot of QPod")
+![Screen shot of QPod](https://raw.githubusercontent.com/wiki/QPod/qpod-hub/img/QPod-screenshot.webp "Screen shot of QPod")
 
 ## Development
 
