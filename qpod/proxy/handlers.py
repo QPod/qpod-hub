@@ -406,7 +406,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         # We don't want multiple requests trying to start the process at the same time
         # FIXME: Make sure this times out properly?
         # Invariant here should be: when lock isn't being held, either 'proc' is in state & running, or not.
-        with (await self.state['proc_lock']):
+        async with self.state['proc_lock']:
             if 'proc' not in self.state:
                 # FIXME: Prevent races here
                 # FIXME: Handle graceful exits of spawned processes here
