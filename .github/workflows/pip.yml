@@ -1,0 +1,44 @@
+# Secret Varaibles required in GitHub secrets: TWINE_USERNAME, TWINE_PASSWORD
+
+name: CI - PYPI
+
+# Controls when the action will run. 
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ release ]
+  pull_request:
+    branches: [ release ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      - name: build-frontend
+        run: |
+          yarn install --cwd ./qpod/base/static/
+          rm -rf ./qpod/base/static/node_modules ./qpod/base/static/yarn.lock ./qpod/base/static/.yarnrc
+      - name: pypi-build-publish
+        env:
+          TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+        run: |
+          sudo pip install -Uq pip && sudo pip install -Uq setuptools wheel twine
+          sudo python -c "import fcntl; fcntl.fcntl(1, fcntl.F_SETFL, 0)"
+          sudo python setup.py sdist bdist_wheel
+          ls -alh ./dist
+          if [ "$GITHUB_REPOSITORY" = "QPod/qpod-hub" ] ; then
+            twine upload dist/* --verbose -u "$TWINE_USERNAME" -p "$TWINE_PASSWORD" ;
+          elif [ ! -z "$TWINE_USERNAME" ]; then
+            twine upload dist/* --verbose -u "$TWINE_USERNAME" -p "$TWINE_PASSWORD" --repository-url "https://test.pypi.org/legacy/" ;
+          fi

@@ -1,5 +1,7 @@
 # For notebook
+.venv/
 .ipynb_checkpoints/
+build/
 
 # For JS
 qpod/base/static/node_modules
