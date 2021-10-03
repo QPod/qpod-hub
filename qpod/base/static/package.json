@@ -4,8 +4,8 @@
    "main": "index.js",
    "private": true,
    "dependencies": {
-      "bootstrap": "~3.4",
-      "jquery": "components/jquery#~3.4.1",
+      "bootstrap": "bootstrap#~3.4",
+      "jquery": "components/jquery#~3.5.0",
       "carbon-components": "carbon-components/carbon-components#~9.68.3"
    }
 }

@@ -14,20 +14,22 @@
 The `qpod-hub` package provides a hub portal user interface and proxy service for QPod.
 
 As a hub service, `qpod-hub` detect if specific service are installed and provides a homepage GUI for users.
-Currently, the following services are supported: 
- - Jupyter Notebook
- - JupyterLab
- - Code-server
- - Tensorboard
- - RStudio Server
- - Shiny Server
+Currently, the following services are supported:
+
+- Jupyter Notebook
+- JupyterLab
+- Code-server
+- Tensorboard
+- RStudio Server
+- Shiny Server
 
 ![Screen shot of QPod](https://raw.githubusercontent.com/wiki/QPod/qpod-hub/img/QPod-screenshot.webp "Screen shot of QPod")
 
 ## Development
 
 ### Under Linux/macOS
-```
+
+```bash
 docker run -it --rm \
     --name=dev_QPod \
     --hostname="docker-develop@" \
@@ -37,7 +39,8 @@ docker run -it --rm \
 ```
 
 ### Under Windows
-```
+
+```cmd
 docker run -it --rm ^
     --name=dev_QPod  ^
     --hostname="docker-develop@" ^
@@ -47,7 +50,8 @@ docker run -it --rm ^
 ```
 
 ### Enter into the container and Debug/Install
-```
+
+```bash
 docker exec -it dev_QPod /bin/bash
 
 PYLIB_DIR="/opt/conda/lib/python3.7/site-packages/"

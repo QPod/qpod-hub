@@ -24,17 +24,16 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-
-      - name: pip-install-test
+      - name: build-frontend
         run: |
           yarn install --cwd ./qpod/base/static/
           rm -rf ./qpod/base/static/node_modules ./qpod/base/static/yarn.lock ./qpod/base/static/.yarnrc
-          sudo pip install -Uq pip && sudo pip install -Uq setuptools wheel twine
-      - name: pypi-publish
+      - name: pypi-build-publish
         env:
           TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
         run: |
+          sudo pip install -Uq pip && sudo pip install -Uq setuptools wheel twine
           sudo python -c "import fcntl; fcntl.fcntl(1, fcntl.F_SETFL, 0)"
           sudo python setup.py sdist bdist_wheel
           ls -alh ./dist
