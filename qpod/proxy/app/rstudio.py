@@ -12,7 +12,8 @@ def setup_rstudio():
 
         return [
             executable,
-            '--www-port=' + str(port)
+            '--www-port=' + str(port),
+            '--www-root-path={base_url}rstudio/'
         ]
 
     return {
