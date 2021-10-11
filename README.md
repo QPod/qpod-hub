@@ -54,8 +54,12 @@ docker run -it --rm ^
 ```bash
 docker exec -it dev_QPod /bin/bash
 
-PYLIB_DIR="/opt/conda/lib/python3.7/site-packages/"
+PYLIB_DIR="/opt/conda/lib/python3.9/site-packages/"
 ln -s `pwd`/qpod $PYLIB_DIR/
+ln -s `pwd`/qpod/base/etc/qpod_hub-jpserverextension.json /opt/conda/etc/jupyter/jupyter_server_config.d/
+ln -s `pwd`/qpod/base/etc/qpod_hub-nbserverextension.json /opt/conda/etc/jupyter/jupyter_notebook_config.d/
+ln -s `pwd`/qpod/base/etc/qpod_hub-nbextension.json       /opt/conda/etc/jupyter/nbconfig/tree.d/
+
 
 yarn --cwd `pwd`/qpod/base/static/
 python -m qpod
