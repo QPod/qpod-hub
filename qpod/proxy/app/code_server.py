@@ -14,7 +14,8 @@ def setup_code_server():
             executable,
             '--auth=none',
             '--disable-telemetry',
-            '--port=' + str(port)
+            '--bind-addr=0.0.0.0:{port}'.format(port=port),
+            '/root/'
         ]
 
     return {

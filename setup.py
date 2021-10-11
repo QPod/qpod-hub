@@ -9,7 +9,7 @@ pack_extensions = {
     'proxy': True
 }
 
-include_packages = ['qpod.%s' % x for x in pack_extensions.keys() if pack_extensions[x]]
+include_packages = ['qpod.%s' % x for x in pack_extensions if pack_extensions[x]]
 print("Pack extensions: %s." % str(include_packages))
 
 include_packages_data = {
@@ -28,17 +28,14 @@ setup(
     author_email='45032326+QPod0@users.noreply.github.com',
     url='https://github.com/QPod/qpod-hub',
     license='BSD',
-    
+
     packages=['qpod'],  # find_packages(include=include_packages),
     include_package_data=True,
     package_data=include_packages_data,
     platforms='Linux, Mac OS X, Windows',
     zip_safe=False,
     install_requires=[
-        'jinja2',
-        'tornado',
-        'aiohttp',
-        'simpervisor'
+        'jupyter_server_proxy'
     ],
 
     description='A hub portal UI and proxy service for QPod.',
@@ -54,8 +51,9 @@ setup(
         "Operating System :: OS Independent",
     ],
     data_files=[
-        ('etc/jupyter/jupyter_notebook_config.d', ['qpod/base/etc/qpod_hub-serverextension.json']),
-        ('etc/jupyter/nbconfig/notebook.d', ['qpod/base/etc/qpod_hub-nbextension.json'])
+        ('etc/jupyter/jupyter_server_config.d', ['qpod/base/etc/qpod_hub-jpserverextension.json']),
+        ('etc/jupyter/jupyter_notebook_config.d', ['qpod/base/etc/qpod_hub-nbserverextension.json']),
+        ('etc/jupyter/nbconfig/tree.d', ['qpod/base/etc/qpod_hub-nbextension.json'])
     ],
     entry_points={
         'console_scripts': [
